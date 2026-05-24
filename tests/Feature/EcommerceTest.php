@@ -173,4 +173,3 @@ class EcommerceTest extends TestCase
         ]);
     }
 }
-
