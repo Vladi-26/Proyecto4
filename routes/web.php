@@ -1,55 +1,69 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Admin\UserController; // Asegúrate de que este controlador exista
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\VentaController;
+use App\Http\Controllers\Admin\DashboardController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes - Mini Proyecto 2 (Autenticación Manual)
-|--------------------------------------------------------------------------
-*/
-
+// --- PÁGINA PRINCIPAL ---
 Route::get('/', function () {
     return view('welcome');
 });
 
-// --- RUTAS DE AUTENTICACIÓN MANUAL ---
+// --- RUTAS DE AUTENTICACIÓN ---
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-Route::get('/verificar-2fa', [App\Http\Controllers\Auth\LoginController::class, 'show2faForm'])->name('2fa.index');
-Route::post('/verificar-2fa', [App\Http\Controllers\Auth\LoginController::class, 'verify2fa'])->name('2fa.verify');
+Route::get('/verificar-2fa', [LoginController::class, 'show2faForm'])->name('2fa.index');
+Route::post('/verificar-2fa', [LoginController::class, 'verify2fa'])->name('2fa.verify');
 
 // --- RUTAS PROTEGIDAS ---
 Route::middleware(['auth'])->group(function () {
 
-Route::get('/ventas/ticket/{venta}', [VentaController::class, 'showTicket'])->name('ventas.ticket');
-// Ruta para que el Gerente valide la venta
-Route::get('/ventas/{venta}/validar', [VentaController::class, 'validar'])->name('ventas.validar');
-    // Redirección inicial según el rol al entrar a /dashboard
+    // Dashboard con redirección por rol
     Route::get('/dashboard', function () {
         $user = Auth::user();
-
         if ($user->rol === 'administrador') {
-            return redirect()->route('admin.usuarios.index');
+    return redirect()->route('admin.dashboard');
         } elseif ($user->rol === 'gerente') {
             return redirect()->route('gerente.dashboard');
         }
-
-        return view('dashboard'); // Vista para Clientes
+        return view('dashboard');
     })->name('dashboard');
 
-    // Rutas para el Administrador (CRUD de Usuarios - Puntos 9 y 10)
-    Route::get('/admin/usuarios', [UserController::class, 'index'])->name('admin.usuarios.index');
+    // --- PRODUCTOS (CRUD con disco público) ---
+    Route::resource('productos', ProductoController::class);
 
-    // Rutas para el Gerente
+    // --- VENTAS ---
+    // Ver ticket desde disco PRIVADO (servido por controlador con Policy)
+    Route::get('/ventas/ticket/{venta}', [VentaController::class, 'showTicket'])
+        ->name('ventas.ticket');
+
+    // Subir ticket al disco PRIVADO
+    Route::post('/ventas/{venta}/ticket', [VentaController::class, 'subirTicket'])
+        ->name('ventas.ticket.subir');
+
+    // Validar venta (solo gerente/admin)
+    Route::get('/ventas/{venta}/validar', [VentaController::class, 'validar'])
+        ->name('ventas.validar');
+
+    // Detalle de productos via hasManyThrough
+    Route::get('/ventas/{venta}/productos', [VentaController::class, 'detalleProductos'])
+        ->name('ventas.productos');
+
+    // --- ADMINISTRADOR ---
+    Route::get('/admin/usuarios', [UserController::class, 'index'])
+        ->name('admin.usuarios.index');
+
+    // --- GERENTE ---
     Route::get('/gerente/dashboard', function () {
         return view('dashboards.gerente');
     })->name('gerente.dashboard');
 
-});
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])
+    ->name('admin.dashboard');
 
-// Eliminamos el require auth.php porque ya estamos manejando el login aquí
+});

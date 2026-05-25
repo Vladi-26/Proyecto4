@@ -6,5 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Categoria extends Model
 {
-    //
+    protected $fillable = ['nombre'];
+
+    // Una categoría tiene muchos productos
+    public function productos()
+    {
+        return $this->belongsToMany(Producto::class, 'categoria_producto');
+    }
 }

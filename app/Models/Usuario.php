@@ -14,7 +14,7 @@ class Usuario extends Authenticatable
         'nombre',
         'apellidos',
         'correo',
-        'clave', // Usaremos 'clave' en lugar de password
+        'clave',
         'rol',
     ];
 
@@ -23,22 +23,26 @@ class Usuario extends Authenticatable
         'remember_token',
     ];
 
-    // Laravel busca por defecto 'password', indicamos que use 'clave'
     public function getAuthPassword()
     {
         return $this->clave;
     }
 
-    // RELACIONES (Requisito 4 y 6)
-    public function productos() {
+    // Productos que vende este usuario
+    public function productos()
+    {
         return $this->hasMany(Producto::class, 'usuario_id');
     }
 
-    public function compras() {
-        return $this->hasMany(Venta::class, 'cliente_id');
+    // Compras realizadas como cliente
+    public function compras()
+    {
+        return $this->hasMany(Venta::class, 'usuario_id');
     }
 
-    public function ventas() {
+    // Ventas realizadas como vendedor
+    public function ventas()
+    {
         return $this->hasMany(Venta::class, 'vendedor_id');
     }
 }

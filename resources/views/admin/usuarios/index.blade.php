@@ -8,7 +8,7 @@
 <body class="bg-gray-100 p-8">
     <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Listado de Usuarios (Mini Proyecto 2)</h1>
+            <h1 class="text-2xl font-bold text-gray-800">Listado de Usuarios</h1>
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="text-sm bg-red-500 text-white px-3 py-1 rounded">Cerrar Sesión</button>
