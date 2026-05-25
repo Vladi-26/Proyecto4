@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Usuario;
 use App\Models\Categoria;
+use App\Models\Producto;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -11,6 +12,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // --- USUARIOS ---
         Usuario::firstOrCreate(['correo' => 'test@example.com'], [
             'nombre' => 'Milton Vladimir', 'apellidos' => 'Administrador',
             'clave' => Hash::make('123'), 'rol' => 'administrador',
@@ -102,9 +104,46 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
+        // --- CATEGORÍAS ---
         $cats = ['Electrónica','Ropa','Hogar','Deportes','Juguetes','Libros','Alimentos','Herramientas','Belleza','Automóviles'];
         foreach ($cats as $nombre) {
             Categoria::firstOrCreate(['nombre' => $nombre]);
+        }
+
+        // --- PRODUCTOS ---
+        $vendedor1 = Usuario::where('correo', 'juan.garcia@example.com')->first();
+        $vendedor2 = Usuario::where('correo', 'maria.lopez@example.com')->first();
+        $vendedor3 = Usuario::where('correo', 'carlos.martinez@example.com')->first();
+
+        $catElectronica = Categoria::where('nombre', 'Electrónica')->first();
+        $catRopa        = Categoria::where('nombre', 'Ropa')->first();
+        $catHogar       = Categoria::where('nombre', 'Hogar')->first();
+        $catDeportes    = Categoria::where('nombre', 'Deportes')->first();
+
+        $productos = [
+            ['nombre'=>'Laptop HP Pavilion','descripcion'=>'Laptop de alto rendimiento para trabajo y estudio','precio'=>18500,'stock'=>15,'usuario_id'=>$vendedor1->id,'categorias'=>[$catElectronica->id]],
+            ['nombre'=>'iPhone 15','descripcion'=>'Smartphone Apple con cámara de 48MP','precio'=>22000,'stock'=>8,'usuario_id'=>$vendedor1->id,'categorias'=>[$catElectronica->id]],
+            ['nombre'=>'Samsung Galaxy S24','descripcion'=>'Smartphone Android con pantalla AMOLED','precio'=>19000,'stock'=>12,'usuario_id'=>$vendedor1->id,'categorias'=>[$catElectronica->id]],
+            ['nombre'=>'Audífonos Sony WH-1000XM5','descripcion'=>'Audífonos inalámbricos con cancelación de ruido','precio'=>8500,'stock'=>20,'usuario_id'=>$vendedor2->id,'categorias'=>[$catElectronica->id]],
+            ['nombre'=>'Monitor LG 27 pulgadas','descripcion'=>'Monitor 4K para diseño y gaming','precio'=>12000,'stock'=>6,'usuario_id'=>$vendedor2->id,'categorias'=>[$catElectronica->id]],
+            ['nombre'=>'Teclado Mecánico Keychron','descripcion'=>'Teclado mecánico inalámbrico con switches rojos','precio'=>3500,'stock'=>25,'usuario_id'=>$vendedor2->id,'categorias'=>[$catElectronica->id]],
+            ['nombre'=>'Playera Polo Ralph Lauren','descripcion'=>'Playera de algodón premium','precio'=>1200,'stock'=>50,'usuario_id'=>$vendedor3->id,'categorias'=>[$catRopa->id]],
+            ['nombre'=>'Jeans Levi\'s 501','descripcion'=>'Jeans clásicos de mezclilla','precio'=>1800,'stock'=>30,'usuario_id'=>$vendedor3->id,'categorias'=>[$catRopa->id]],
+            ['nombre'=>'Tenis Nike Air Max','descripcion'=>'Tenis deportivos con tecnología Air','precio'=>3200,'stock'=>18,'usuario_id'=>$vendedor3->id,'categorias'=>[$catRopa->id,$catDeportes->id]],
+            ['nombre'=>'Licuadora Oster','descripcion'=>'Licuadora de 10 velocidades con vaso de vidrio','precio'=>900,'stock'=>35,'usuario_id'=>$vendedor1->id,'categorias'=>[$catHogar->id]],
+            ['nombre'=>'Cafetera Nespresso','descripcion'=>'Cafetera de cápsulas automática','precio'=>2800,'stock'=>15,'usuario_id'=>$vendedor2->id,'categorias'=>[$catHogar->id]],
+            ['nombre'=>'Pelota de Fútbol Adidas','descripcion'=>'Pelota oficial tamaño 5','precio'=>650,'stock'=>40,'usuario_id'=>$vendedor3->id,'categorias'=>[$catDeportes->id]],
+        ];
+
+        foreach ($productos as $p) {
+            $categorias = $p['categorias'];
+            unset($p['categorias']);
+
+            $producto = Producto::firstOrCreate(
+                ['nombre' => $p['nombre']],
+                $p
+            );
+            $producto->categorias()->syncWithoutDetaching($categorias);
         }
     }
 }
